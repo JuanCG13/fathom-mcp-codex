@@ -1,0 +1,47 @@
+{
+  "name": "@codex-plugins/fathom-mcp",
+  "version": "0.1.0",
+  "description": "Codex plugin and MCP server for Fathom AI Notetaker.",
+  "type": "module",
+  "bin": {
+    "fathom-mcp": "./dist/src/index.js"
+  },
+  "files": [
+    "dist",
+    ".codex-plugin",
+    ".mcp.json",
+    "assets",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test dist/**/*.test.js",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "codex-plugin",
+    "mcp",
+    "fathom",
+    "fathom-ai",
+    "notetaker",
+    "meetings",
+    "transcripts"
+  ],
+  "author": {
+    "name": "Juan Jesus Cubells"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
