@@ -30,7 +30,8 @@
     "transcripts"
   ],
   "author": {
-    "name": "Juan Jesus Cubells"
+    "name": "InzaiQ LLC",
+    "url": "https://www.inzaiq.com/"
   },
   "license": "MIT",
   "dependencies": {

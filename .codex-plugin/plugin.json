@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "description": "Connect Codex to Fathom AI Notetaker meetings, transcripts, summaries, teams, and webhooks through MCP.",
   "author": {
-    "name": "Juan Jesus Cubells"
+    "name": "InzaiQ LLC",
+    "url": "https://www.inzaiq.com/"
   },
   "homepage": "https://developers.fathom.ai/",
-  "repository": "https://github.com/juan-jesus-cubells/fathom-mcp-codex",
+  "repository": "https://github.com/JuanCG13/fathom-mcp-codex",
   "license": "MIT",
   "keywords": [
     "fathom",
@@ -21,14 +22,14 @@
     "displayName": "Fathom MCP",
     "shortDescription": "Use Fathom AI Notetaker data from Codex.",
     "longDescription": "A Codex plugin with a local MCP server for Fathom AI Notetaker. It can list meetings, retrieve recording summaries and transcripts, inspect teams and members, create or delete webhooks, and verify webhook signatures.",
-    "developerName": "Juan Jesus Cubells",
+    "developerName": "InzaiQ LLC",
     "category": "Productivity",
     "capabilities": [
       "Interactive",
       "Read",
       "Write"
     ],
-    "websiteURL": "https://developers.fathom.ai/",
+    "websiteURL": "https://www.inzaiq.com/",
     "defaultPrompt": [
       "List my latest Fathom meetings.",
       "Get the transcript for this Fathom recording.",

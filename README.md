@@ -2,6 +2,8 @@
 
 Codex plugin and local MCP server for [Fathom AI Notetaker](https://developers.fathom.ai/). It connects Codex to Fathom meetings, recording summaries, transcripts, teams, team members, webhook creation/deletion, and webhook signature verification.
 
+Developed by the [InzaiQ LLC](https://www.inzaiq.com/) team, specialists in custom software, applied AI, automation, and crypto engineering.
+
 ## Requirements
 
 - Node.js 20 or newer
@@ -139,7 +141,7 @@ codex mcp add fathom \
 Use this only if you want to modify the plugin locally.
 
 ```bash
-git clone https://github.com/juan-jesus-cubells/fathom-mcp-codex.git
+git clone https://github.com/JuanCG13/fathom-mcp-codex.git
 cd fathom-mcp-codex
 npm install
 npm run build
