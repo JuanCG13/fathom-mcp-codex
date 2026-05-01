@@ -4,7 +4,7 @@
   "description": "Codex plugin and MCP server for Fathom AI Notetaker.",
   "type": "module",
   "bin": {
-    "fathom-mcp": "./dist/src/index.js"
+    "fathom-mcp": "./dist/index.js"
   },
   "files": [
     "dist",
@@ -15,7 +15,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js",
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "node --test dist/**/*.test.js",
     "prepare": "npm run build"
@@ -39,6 +39,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.0",
+    "esbuild": "^0.28.0",
     "typescript": "^6.0.3"
   },
   "engines": {

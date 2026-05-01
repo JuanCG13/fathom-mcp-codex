@@ -19,6 +19,24 @@ export FATHOM_WEBHOOK_SECRET="whsec_your_webhook_secret"
 
 `FATHOM_WEBHOOK_API_KEY` is also supported as a backward-compatible alias for `FATHOM_WEBHOOK_SECRET`.
 
+## Fastest MCP Install
+
+If you only want the MCP server in Codex, use `npx` directly from GitHub:
+
+```bash
+export FATHOM_API_KEY="your_fathom_api_key"
+codex mcp add fathom --env FATHOM_API_KEY="$FATHOM_API_KEY" -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
+Optional webhook verification:
+
+```bash
+codex mcp add fathom \
+  --env FATHOM_API_KEY="$FATHOM_API_KEY" \
+  --env FATHOM_WEBHOOK_SECRET="$FATHOM_WEBHOOK_SECRET" \
+  -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
 ## Install From Source
 
 ```bash
@@ -28,7 +46,7 @@ npm install
 npm run build
 ```
 
-The Codex plugin manifest lives at `.codex-plugin/plugin.json`, and MCP configuration lives at `.mcp.json`. Built JavaScript is included in `dist/` so the plugin can start directly from the MCP config after installation.
+The Codex plugin manifest lives at `.codex-plugin/plugin.json`, and MCP configuration lives at `.mcp.json`. Built JavaScript is included in `dist/index.js` so the plugin can start directly from the MCP config after installation.
 
 ## MCP Tools
 

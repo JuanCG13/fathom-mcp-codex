@@ -3,14 +3,14 @@
     "fathom": {
       "type": "stdio",
       "command": "node",
-      "args": ["./dist/src/index.js"],
+      "args": ["./dist/index.js"],
       "env": {
         "FATHOM_API_KEY": "${FATHOM_API_KEY}",
         "FATHOM_WEBHOOK_SECRET": "${FATHOM_WEBHOOK_SECRET}",
         "FATHOM_WEBHOOK_API_KEY": "${FATHOM_WEBHOOK_API_KEY}",
         "FATHOM_BASE_URL": "${FATHOM_BASE_URL}"
       },
-      "note": "Local MCP server for Fathom AI Notetaker. Requires FATHOM_API_KEY. Run npm install && npm run build after modifying source."
+      "note": "Local MCP server for Fathom AI Notetaker. Requires FATHOM_API_KEY and Node.js 20 or newer."
     }
   }
 }
