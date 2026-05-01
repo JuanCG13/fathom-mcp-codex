@@ -30,6 +30,20 @@ export interface FathomClientOptions {
   fetchImpl?: typeof fetch;
 }
 
+export interface FathomAccountConfig {
+  id: string;
+  label: string;
+  apiKey: string;
+  baseUrl?: string;
+}
+
+export interface PublicFathomAccount {
+  id: string;
+  label: string;
+  is_default: boolean;
+  base_url: string;
+}
+
 export class FathomClient {
   private readonly apiKey: string;
   private readonly baseUrl: string;
@@ -93,6 +107,140 @@ export class FathomClient {
     if (!text) return { ok: true };
     return JSON.parse(text) as JsonValue;
   }
+}
+
+export interface FathomAccountSelection {
+  account?: string;
+  fetchImpl?: typeof fetch;
+}
+
+export function createFathomClient(selection: FathomAccountSelection = {}): FathomClient {
+  const account = resolveFathomAccount(selection.account);
+  return new FathomClient({
+    apiKey: account.apiKey,
+    baseUrl: account.baseUrl,
+    fetchImpl: selection.fetchImpl,
+  });
+}
+
+export function listFathomAccounts(): PublicFathomAccount[] {
+  const accounts = loadFathomAccounts();
+  const defaultAccountId = resolveDefaultAccountId(accounts);
+  return accounts.map((account) => ({
+    id: account.id,
+    label: account.label,
+    is_default: account.id === defaultAccountId,
+    base_url: account.baseUrl ?? process.env.FATHOM_BASE_URL ?? DEFAULT_BASE_URL,
+  }));
+}
+
+export function getDefaultFathomAccount(): PublicFathomAccount {
+  const account = resolveFathomAccount();
+  return {
+    id: account.id,
+    label: account.label,
+    is_default: true,
+    base_url: account.baseUrl ?? process.env.FATHOM_BASE_URL ?? DEFAULT_BASE_URL,
+  };
+}
+
+function resolveFathomAccount(accountId?: string): FathomAccountConfig {
+  const accounts = loadFathomAccounts();
+  if (accounts.length === 0) {
+    throw new Error("Configure FATHOM_API_KEY or FATHOM_ACCOUNTS before using Fathom MCP tools.");
+  }
+
+  if (accountId) {
+    const account = accounts.find((candidate) => candidate.id === accountId);
+    if (!account) {
+      throw new Error(`Unknown Fathom account '${accountId}'. Available accounts: ${accounts.map((account) => account.id).join(", ")}.`);
+    }
+    return account;
+  }
+
+  const defaultAccountId = resolveDefaultAccountId(accounts);
+  const defaultAccount = accounts.find((account) => account.id === defaultAccountId);
+  if (!defaultAccount) {
+    throw new Error(`FATHOM_DEFAULT_ACCOUNT '${defaultAccountId}' does not match any configured account.`);
+  }
+
+  return defaultAccount;
+}
+
+function loadFathomAccounts(): FathomAccountConfig[] {
+  if (process.env.FATHOM_ACCOUNTS?.trim()) {
+    return parseFathomAccounts(process.env.FATHOM_ACCOUNTS);
+  }
+
+  if (process.env.FATHOM_API_KEY) {
+    return [
+      {
+        id: "default",
+        label: "Default",
+        apiKey: process.env.FATHOM_API_KEY,
+        baseUrl: process.env.FATHOM_BASE_URL,
+      },
+    ];
+  }
+
+  return [];
+}
+
+function parseFathomAccounts(rawAccounts: string): FathomAccountConfig[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawAccounts);
+  } catch (error) {
+    throw new Error(`FATHOM_ACCOUNTS must be valid JSON. ${error instanceof Error ? error.message : ""}`.trim());
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error("FATHOM_ACCOUNTS must be a JSON array.");
+  }
+
+  const accounts = parsed.map((account, index) => normalizeFathomAccount(account, index));
+  const ids = new Set<string>();
+  for (const account of accounts) {
+    if (ids.has(account.id)) {
+      throw new Error(`FATHOM_ACCOUNTS contains duplicate account id '${account.id}'.`);
+    }
+    ids.add(account.id);
+  }
+
+  return accounts;
+}
+
+function normalizeFathomAccount(account: unknown, index: number): FathomAccountConfig {
+  if (!account || typeof account !== "object" || Array.isArray(account)) {
+    throw new Error(`FATHOM_ACCOUNTS[${index}] must be an object.`);
+  }
+
+  const candidate = account as Record<string, unknown>;
+  const id = stringField(candidate, "id", index);
+  const label = typeof candidate.label === "string" && candidate.label.trim() ? candidate.label.trim() : id;
+  const apiKey = stringField(candidate, "apiKey", index);
+  const baseUrl = typeof candidate.baseUrl === "string" && candidate.baseUrl.trim() ? candidate.baseUrl.trim() : undefined;
+
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw new Error(`FATHOM_ACCOUNTS[${index}].id may only contain letters, numbers, underscores, and hyphens.`);
+  }
+
+  return { id, label, apiKey, baseUrl };
+}
+
+function stringField(candidate: Record<string, unknown>, field: "id" | "apiKey", index: number): string {
+  const value = candidate[field];
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(`FATHOM_ACCOUNTS[${index}].${field} must be a non-empty string.`);
+  }
+  return value.trim();
+}
+
+function resolveDefaultAccountId(accounts: FathomAccountConfig[]): string {
+  if (process.env.FATHOM_DEFAULT_ACCOUNT?.trim()) {
+    return process.env.FATHOM_DEFAULT_ACCOUNT.trim();
+  }
+  return accounts[0]?.id ?? "default";
 }
 
 export interface VerifyWebhookInput {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
 import test from "node:test";
-import { FathomClient, verifyFathomWebhook } from "../src/fathom.js";
+import { createFathomClient, FathomClient, getDefaultFathomAccount, listFathomAccounts, verifyFathomWebhook } from "../src/fathom.js";
 
 test("FathomClient serializes repeated array query parameters", async () => {
   let requestedUrl = "";
@@ -46,3 +46,74 @@ test("verifyFathomWebhook validates Fathom HMAC signatures", () => {
     true,
   );
 });
+
+test("listFathomAccounts returns safe account metadata", () => {
+  const previousAccounts = process.env.FATHOM_ACCOUNTS;
+  const previousDefault = process.env.FATHOM_DEFAULT_ACCOUNT;
+  const previousApiKey = process.env.FATHOM_API_KEY;
+  try {
+    delete process.env.FATHOM_API_KEY;
+    process.env.FATHOM_DEFAULT_ACCOUNT = "inzaiq";
+    process.env.FATHOM_ACCOUNTS = JSON.stringify([
+      { id: "personal", label: "Personal", apiKey: "personal-key" },
+      { id: "inzaiq", label: "InzaiQ", apiKey: "inzaiq-key" },
+    ]);
+
+    assert.deepEqual(listFathomAccounts(), [
+      {
+        id: "personal",
+        label: "Personal",
+        is_default: false,
+        base_url: "https://api.fathom.ai/external/v1",
+      },
+      {
+        id: "inzaiq",
+        label: "InzaiQ",
+        is_default: true,
+        base_url: "https://api.fathom.ai/external/v1",
+      },
+    ]);
+    assert.equal(getDefaultFathomAccount().id, "inzaiq");
+  } finally {
+    restoreEnv("FATHOM_ACCOUNTS", previousAccounts);
+    restoreEnv("FATHOM_DEFAULT_ACCOUNT", previousDefault);
+    restoreEnv("FATHOM_API_KEY", previousApiKey);
+  }
+});
+
+test("createFathomClient selects requested account", async () => {
+  const previousAccounts = process.env.FATHOM_ACCOUNTS;
+  const previousDefault = process.env.FATHOM_DEFAULT_ACCOUNT;
+  const previousApiKey = process.env.FATHOM_API_KEY;
+  try {
+    delete process.env.FATHOM_API_KEY;
+    process.env.FATHOM_DEFAULT_ACCOUNT = "personal";
+    process.env.FATHOM_ACCOUNTS = JSON.stringify([
+      { id: "personal", label: "Personal", apiKey: "personal-key" },
+      { id: "inzaiq", label: "InzaiQ", apiKey: "inzaiq-key" },
+    ]);
+
+    let apiKey = "";
+    const fetchImpl = async (_url: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      apiKey = new Headers(init?.headers).get("X-Api-Key") ?? "";
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    };
+
+    const client = createFathomClient({ account: "inzaiq", fetchImpl: fetchImpl as typeof fetch });
+    await client.get("/teams");
+
+    assert.equal(apiKey, "inzaiq-key");
+  } finally {
+    restoreEnv("FATHOM_ACCOUNTS", previousAccounts);
+    restoreEnv("FATHOM_DEFAULT_ACCOUNT", previousDefault);
+    restoreEnv("FATHOM_API_KEY", previousApiKey);
+  }
+});
+
+function restoreEnv(name: string, value: string | undefined): void {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+}

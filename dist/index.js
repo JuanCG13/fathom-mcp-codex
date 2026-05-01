@@ -30917,6 +30917,115 @@ var FathomClient = class {
     return JSON.parse(text);
   }
 };
+function createFathomClient(selection = {}) {
+  const account = resolveFathomAccount(selection.account);
+  return new FathomClient({
+    apiKey: account.apiKey,
+    baseUrl: account.baseUrl,
+    fetchImpl: selection.fetchImpl
+  });
+}
+function listFathomAccounts() {
+  const accounts = loadFathomAccounts();
+  const defaultAccountId = resolveDefaultAccountId(accounts);
+  return accounts.map((account) => ({
+    id: account.id,
+    label: account.label,
+    is_default: account.id === defaultAccountId,
+    base_url: account.baseUrl ?? process.env.FATHOM_BASE_URL ?? DEFAULT_BASE_URL
+  }));
+}
+function getDefaultFathomAccount() {
+  const account = resolveFathomAccount();
+  return {
+    id: account.id,
+    label: account.label,
+    is_default: true,
+    base_url: account.baseUrl ?? process.env.FATHOM_BASE_URL ?? DEFAULT_BASE_URL
+  };
+}
+function resolveFathomAccount(accountId) {
+  const accounts = loadFathomAccounts();
+  if (accounts.length === 0) {
+    throw new Error("Configure FATHOM_API_KEY or FATHOM_ACCOUNTS before using Fathom MCP tools.");
+  }
+  if (accountId) {
+    const account = accounts.find((candidate) => candidate.id === accountId);
+    if (!account) {
+      throw new Error(`Unknown Fathom account '${accountId}'. Available accounts: ${accounts.map((account2) => account2.id).join(", ")}.`);
+    }
+    return account;
+  }
+  const defaultAccountId = resolveDefaultAccountId(accounts);
+  const defaultAccount = accounts.find((account) => account.id === defaultAccountId);
+  if (!defaultAccount) {
+    throw new Error(`FATHOM_DEFAULT_ACCOUNT '${defaultAccountId}' does not match any configured account.`);
+  }
+  return defaultAccount;
+}
+function loadFathomAccounts() {
+  if (process.env.FATHOM_ACCOUNTS?.trim()) {
+    return parseFathomAccounts(process.env.FATHOM_ACCOUNTS);
+  }
+  if (process.env.FATHOM_API_KEY) {
+    return [
+      {
+        id: "default",
+        label: "Default",
+        apiKey: process.env.FATHOM_API_KEY,
+        baseUrl: process.env.FATHOM_BASE_URL
+      }
+    ];
+  }
+  return [];
+}
+function parseFathomAccounts(rawAccounts) {
+  let parsed;
+  try {
+    parsed = JSON.parse(rawAccounts);
+  } catch (error51) {
+    throw new Error(`FATHOM_ACCOUNTS must be valid JSON. ${error51 instanceof Error ? error51.message : ""}`.trim());
+  }
+  if (!Array.isArray(parsed)) {
+    throw new Error("FATHOM_ACCOUNTS must be a JSON array.");
+  }
+  const accounts = parsed.map((account, index) => normalizeFathomAccount(account, index));
+  const ids = /* @__PURE__ */ new Set();
+  for (const account of accounts) {
+    if (ids.has(account.id)) {
+      throw new Error(`FATHOM_ACCOUNTS contains duplicate account id '${account.id}'.`);
+    }
+    ids.add(account.id);
+  }
+  return accounts;
+}
+function normalizeFathomAccount(account, index) {
+  if (!account || typeof account !== "object" || Array.isArray(account)) {
+    throw new Error(`FATHOM_ACCOUNTS[${index}] must be an object.`);
+  }
+  const candidate = account;
+  const id = stringField(candidate, "id", index);
+  const label = typeof candidate.label === "string" && candidate.label.trim() ? candidate.label.trim() : id;
+  const apiKey = stringField(candidate, "apiKey", index);
+  const baseUrl = typeof candidate.baseUrl === "string" && candidate.baseUrl.trim() ? candidate.baseUrl.trim() : void 0;
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw new Error(`FATHOM_ACCOUNTS[${index}].id may only contain letters, numbers, underscores, and hyphens.`);
+  }
+  return { id, label, apiKey, baseUrl };
+}
+function stringField(candidate, field, index) {
+  const value = candidate[field];
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(`FATHOM_ACCOUNTS[${index}].${field} must be a non-empty string.`);
+  }
+  return value.trim();
+}
+function resolveDefaultAccountId(accounts) {
+  if (process.env.FATHOM_DEFAULT_ACCOUNT?.trim()) {
+    return process.env.FATHOM_DEFAULT_ACCOUNT.trim();
+  }
+  return accounts[0]?.id ?? "default";
+}
 function verifyFathomWebhook(input) {
   const secret = input.secret ?? process.env.FATHOM_WEBHOOK_SECRET ?? process.env.FATHOM_WEBHOOK_API_KEY;
   if (!secret) {
@@ -30968,14 +31077,34 @@ var server = new McpServer({
   name: "fathom-mcp",
   version: "0.1.0"
 });
-var client = () => new FathomClient();
+var accountSchema = external_exports.string().optional().describe("Optional Fathom account id from FATHOM_ACCOUNTS.");
+var client = (account) => createFathomClient({ account });
 var triggeredForSchema = external_exports.array(external_exports.enum(["my_recordings", "shared_external_recordings", "my_shared_with_team_recordings", "shared_team_recordings"])).min(1);
+server.registerTool(
+  "fathom_list_accounts",
+  {
+    title: "List Fathom accounts",
+    description: "List configured Fathom accounts without exposing API keys.",
+    inputSchema: {}
+  },
+  async () => jsonText({ accounts: listFathomAccounts() })
+);
+server.registerTool(
+  "fathom_get_default_account",
+  {
+    title: "Get default Fathom account",
+    description: "Show which configured Fathom account is used when no account is specified.",
+    inputSchema: {}
+  },
+  async () => jsonText({ account: getDefaultFathomAccount() })
+);
 server.registerTool(
   "fathom_list_meetings",
   {
     title: "List Fathom meetings",
     description: "List meetings recorded by you or shared with your team. Optionally include transcript, summary, action items, and CRM matches.",
     inputSchema: {
+      account: accountSchema,
       cursor: external_exports.string().optional(),
       created_after: external_exports.string().optional(),
       created_before: external_exports.string().optional(),
@@ -30990,7 +31119,7 @@ server.registerTool(
     }
   },
   async (input) => jsonText(
-    await client().get("/meetings", {
+    await client(input.account).get("/meetings", {
       cursor: input.cursor,
       created_after: input.created_after,
       created_before: input.created_before,
@@ -31011,11 +31140,12 @@ server.registerTool(
     title: "Get Fathom recording summary",
     description: "Get the summary for a Fathom recording, or send it asynchronously to a destination URL.",
     inputSchema: {
+      account: accountSchema,
       recording_id: external_exports.number().int().positive(),
       destination_url: external_exports.string().url().optional()
     }
   },
-  async ({ recording_id, destination_url }) => jsonText(await client().get(`/recordings/${recording_id}/summary`, { destination_url }))
+  async ({ account, recording_id, destination_url }) => jsonText(await client(account).get(`/recordings/${recording_id}/summary`, { destination_url }))
 );
 server.registerTool(
   "fathom_get_recording_transcript",
@@ -31023,11 +31153,12 @@ server.registerTool(
     title: "Get Fathom recording transcript",
     description: "Get the transcript for a Fathom recording, or send it asynchronously to a destination URL.",
     inputSchema: {
+      account: accountSchema,
       recording_id: external_exports.number().int().positive(),
       destination_url: external_exports.string().url().optional()
     }
   },
-  async ({ recording_id, destination_url }) => jsonText(await client().get(`/recordings/${recording_id}/transcript`, { destination_url }))
+  async ({ account, recording_id, destination_url }) => jsonText(await client(account).get(`/recordings/${recording_id}/transcript`, { destination_url }))
 );
 server.registerTool(
   "fathom_get_recording_content",
@@ -31035,11 +31166,12 @@ server.registerTool(
     title: "Get Fathom recording content",
     description: "Fetch both summary and transcript for a Fathom recording and return them together.",
     inputSchema: {
+      account: accountSchema,
       recording_id: external_exports.number().int().positive()
     }
   },
-  async ({ recording_id }) => {
-    const api = client();
+  async ({ account, recording_id }) => {
+    const api = client(account);
     const [summary, transcript] = await Promise.all([
       api.get(`/recordings/${recording_id}/summary`),
       api.get(`/recordings/${recording_id}/transcript`)
@@ -31053,10 +31185,11 @@ server.registerTool(
     title: "List Fathom teams",
     description: "List teams visible to the authenticated Fathom API key.",
     inputSchema: {
+      account: accountSchema,
       cursor: external_exports.string().optional()
     }
   },
-  async ({ cursor }) => jsonText(await client().get("/teams", { cursor }))
+  async ({ account, cursor }) => jsonText(await client(account).get("/teams", { cursor }))
 );
 server.registerTool(
   "fathom_list_team_members",
@@ -31064,11 +31197,12 @@ server.registerTool(
     title: "List Fathom team members",
     description: "List Fathom team members, optionally filtered by team name.",
     inputSchema: {
+      account: accountSchema,
       cursor: external_exports.string().optional(),
       team: external_exports.string().optional()
     }
   },
-  async ({ cursor, team }) => jsonText(await client().get("/team_members", { cursor, team }))
+  async ({ account, cursor, team }) => jsonText(await client(account).get("/team_members", { cursor, team }))
 );
 server.registerTool(
   "fathom_create_webhook",
@@ -31076,6 +31210,7 @@ server.registerTool(
     title: "Create Fathom webhook",
     description: "Create a Fathom webhook for new meeting content. At least one include_* option must be true.",
     inputSchema: {
+      account: accountSchema,
       destination_url: external_exports.string().url(),
       triggered_for: triggeredForSchema.default(["my_recordings"]),
       include_transcript: external_exports.boolean().optional(),
@@ -31095,7 +31230,7 @@ server.registerTool(
       throw new Error("At least one of include_transcript, include_summary, include_action_items, or include_crm_matches must be true.");
     }
     return jsonText(
-      await client().post("/webhooks", {
+      await client(input.account).post("/webhooks", {
         destination_url: input.destination_url,
         triggered_for: input.triggered_for,
         include_transcript: input.include_transcript ?? false,
@@ -31112,10 +31247,11 @@ server.registerTool(
     title: "Delete Fathom webhook",
     description: "Delete a Fathom webhook by ID.",
     inputSchema: {
+      account: accountSchema,
       id: external_exports.string().min(1)
     }
   },
-  async ({ id }) => jsonText(await client().delete(`/webhooks/${encodeURIComponent(id)}`))
+  async ({ account, id }) => jsonText(await client(account).delete(`/webhooks/${encodeURIComponent(id)}`))
 );
 server.registerTool(
   "fathom_verify_webhook",

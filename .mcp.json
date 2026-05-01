@@ -6,6 +6,8 @@
       "args": ["./dist/index.js"],
       "env": {
         "FATHOM_API_KEY": "${FATHOM_API_KEY}",
+        "FATHOM_ACCOUNTS": "${FATHOM_ACCOUNTS}",
+        "FATHOM_DEFAULT_ACCOUNT": "${FATHOM_DEFAULT_ACCOUNT}",
         "FATHOM_WEBHOOK_SECRET": "${FATHOM_WEBHOOK_SECRET}",
         "FATHOM_WEBHOOK_API_KEY": "${FATHOM_WEBHOOK_API_KEY}",
         "FATHOM_BASE_URL": "${FATHOM_BASE_URL}"

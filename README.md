@@ -63,6 +63,56 @@ Summarize my most recent Fathom meeting.
 List my Fathom teams.
 ```
 
+## Multiple Fathom Accounts
+
+You can connect more than one Fathom account to the same MCP server. Use this when you have separate API keys for personal, company, or client workspaces.
+
+If `FATHOM_ACCOUNTS` is set, it takes precedence over `FATHOM_API_KEY`.
+
+### Bash or macOS/Linux
+
+```bash
+export FATHOM_ACCOUNTS='[
+  {"id":"personal","label":"Personal","apiKey":"your_personal_fathom_api_key"},
+  {"id":"inzaiq","label":"InzaiQ","apiKey":"your_inzaiq_fathom_api_key"}
+]'
+export FATHOM_DEFAULT_ACCOUNT="inzaiq"
+
+codex mcp add fathom \
+  --env FATHOM_ACCOUNTS="$FATHOM_ACCOUNTS" \
+  --env FATHOM_DEFAULT_ACCOUNT="$FATHOM_DEFAULT_ACCOUNT" \
+  -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
+### Windows PowerShell
+
+```powershell
+$env:FATHOM_ACCOUNTS='[
+  {"id":"personal","label":"Personal","apiKey":"your_personal_fathom_api_key"},
+  {"id":"inzaiq","label":"InzaiQ","apiKey":"your_inzaiq_fathom_api_key"}
+]'
+$env:FATHOM_DEFAULT_ACCOUNT="inzaiq"
+
+codex mcp add fathom `
+  --env FATHOM_ACCOUNTS="$env:FATHOM_ACCOUNTS" `
+  --env FATHOM_DEFAULT_ACCOUNT="$env:FATHOM_DEFAULT_ACCOUNT" `
+  -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
+### Using accounts in Codex
+
+Ask Codex naturally:
+
+```text
+List my configured Fathom accounts.
+List my latest Fathom meetings from the InzaiQ account.
+Get the transcript for recording 123456789 from the personal account.
+```
+
+Every Fathom tool accepts an optional `account` id. If no account is specified, the MCP server uses `FATHOM_DEFAULT_ACCOUNT`. If no default is set, it uses the first account in `FATHOM_ACCOUNTS`.
+
+Account ids may contain letters, numbers, underscores, and hyphens. API keys are never returned by the account-listing tool.
+
 ## Codex Desktop on Windows
 
 Codex Desktop can use this MCP server as long as you register it in the same environment where Codex Desktop runs.
@@ -136,6 +186,40 @@ codex mcp add fathom \
 
 `FATHOM_WEBHOOK_API_KEY` is also supported as a backward-compatible alias for `FATHOM_WEBHOOK_SECRET`.
 
+## Update
+
+This MCP server is normally installed through `npx` from GitHub. To make Codex fetch the latest version, remove and add the server again.
+
+Single-account update:
+
+```bash
+codex mcp remove fathom
+
+codex mcp add fathom --env FATHOM_API_KEY="$FATHOM_API_KEY" -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
+Multi-account update:
+
+```bash
+codex mcp remove fathom
+
+codex mcp add fathom \
+  --env FATHOM_ACCOUNTS="$FATHOM_ACCOUNTS" \
+  --env FATHOM_DEFAULT_ACCOUNT="$FATHOM_DEFAULT_ACCOUNT" \
+  -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
+Windows PowerShell:
+
+```powershell
+codex mcp remove fathom
+
+codex mcp add fathom `
+  --env FATHOM_ACCOUNTS="$env:FATHOM_ACCOUNTS" `
+  --env FATHOM_DEFAULT_ACCOUNT="$env:FATHOM_DEFAULT_ACCOUNT" `
+  -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
 ## Install From Source
 
 Use this only if you want to modify the plugin locally.
@@ -152,6 +236,8 @@ The Codex plugin manifest lives at `.codex-plugin/plugin.json`, and MCP configur
 ## MCP Tools
 
 - `fathom_list_meetings`: list meetings with filters and optional summary/transcript/action items/CRM data.
+- `fathom_list_accounts`: list configured Fathom accounts without exposing API keys.
+- `fathom_get_default_account`: show the account used when no account is specified.
 - `fathom_get_recording_summary`: fetch a recording summary or send it to a destination URL.
 - `fathom_get_recording_transcript`: fetch a recording transcript or send it to a destination URL.
 - `fathom_get_recording_content`: fetch summary and transcript together.
