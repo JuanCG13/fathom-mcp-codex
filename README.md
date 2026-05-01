@@ -5,39 +5,86 @@ Codex plugin and local MCP server for [Fathom AI Notetaker](https://developers.f
 ## Requirements
 
 - Node.js 20 or newer
+- Codex CLI
 - A Fathom API key from Fathom User Settings > API Access
 - Optional webhook secret for signature verification
 
-## Configuration
+## Quick Install
 
-Create environment variables in your shell or Codex environment:
+This is the simplest install path. It uses `npx` to run the MCP server directly from GitHub, so you do not need to clone or build this repository.
 
-```bash
-export FATHOM_API_KEY="your_fathom_api_key"
-export FATHOM_WEBHOOK_SECRET="whsec_your_webhook_secret"
+### 1. Get your Fathom API key
+
+Open Fathom, then go to:
+
+```text
+User Settings > API Access
 ```
 
-`FATHOM_WEBHOOK_API_KEY` is also supported as a backward-compatible alias for `FATHOM_WEBHOOK_SECRET`.
+Create or copy your API key.
 
-## Fastest MCP Install
+### 2. Export the API key
 
-If you only want the MCP server in Codex, use `npx` directly from GitHub:
+In your terminal:
 
 ```bash
 export FATHOM_API_KEY="your_fathom_api_key"
+```
+
+### 3. Add Fathom to Codex
+
+```bash
 codex mcp add fathom --env FATHOM_API_KEY="$FATHOM_API_KEY" -- npx -y github:JuanCG13/fathom-mcp-codex
 ```
 
-Optional webhook verification:
+### 4. Verify the MCP server is registered
 
 ```bash
+codex mcp list
+```
+
+You should see a server named `fathom`.
+
+### 5. Use it in Codex
+
+Open Codex and ask:
+
+```text
+List my latest Fathom meetings.
+```
+
+Other useful prompts:
+
+```text
+Get the transcript for my latest Fathom recording.
+Summarize my most recent Fathom meeting.
+List my Fathom teams.
+```
+
+## Optional Webhook Setup
+
+If you want Codex to verify Fathom webhook signatures, also export the webhook secret returned by Fathom when you create a webhook:
+
+```bash
+export FATHOM_WEBHOOK_SECRET="whsec_your_webhook_secret"
+```
+
+If you already added the MCP server without the webhook secret, remove and add it again:
+
+```bash
+codex mcp remove fathom
+
 codex mcp add fathom \
   --env FATHOM_API_KEY="$FATHOM_API_KEY" \
   --env FATHOM_WEBHOOK_SECRET="$FATHOM_WEBHOOK_SECRET" \
   -- npx -y github:JuanCG13/fathom-mcp-codex
 ```
 
+`FATHOM_WEBHOOK_API_KEY` is also supported as a backward-compatible alias for `FATHOM_WEBHOOK_SECRET`.
+
 ## Install From Source
+
+Use this only if you want to modify the plugin locally.
 
 ```bash
 git clone https://github.com/juan-jesus-cubells/fathom-mcp-codex.git
