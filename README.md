@@ -67,9 +67,60 @@ List my Fathom teams.
 
 You can connect more than one Fathom account to the same MCP server. Use this when you have separate API keys for personal, company, or client workspaces.
 
-If `FATHOM_ACCOUNTS` is set, it takes precedence over `FATHOM_API_KEY`.
+Recommended setup:
 
-### Bash or macOS/Linux
+- Use separate environment variables per account on Windows/Codex Desktop.
+- Use `FATHOM_ACCOUNTS` JSON only when you are comfortable handling JSON escaping.
+
+If `FATHOM_ACCOUNTS` is set, it takes precedence over individual `FATHOM_ACCOUNT_<ID>_API_KEY` variables and `FATHOM_API_KEY`.
+
+### Windows PowerShell Recommended
+
+This avoids JSON parsing issues in `C:\Users\<you>\.codex\config.toml`.
+
+```powershell
+$env:FATHOM_ACCOUNT_LEADS_API_KEY="your_leads_fathom_api_key"
+$env:FATHOM_ACCOUNT_LEADS_LABEL="Leads"
+$env:FATHOM_ACCOUNT_INTERNO_API_KEY="your_interno_fathom_api_key"
+$env:FATHOM_ACCOUNT_INTERNO_LABEL="Interno"
+$env:FATHOM_ACCOUNT_JOTA_API_KEY="your_jota_fathom_api_key"
+$env:FATHOM_ACCOUNT_JOTA_LABEL="Jota"
+$env:FATHOM_DEFAULT_ACCOUNT="leads"
+
+codex mcp add fathom `
+  --env FATHOM_ACCOUNT_LEADS_API_KEY="$env:FATHOM_ACCOUNT_LEADS_API_KEY" `
+  --env FATHOM_ACCOUNT_LEADS_LABEL="$env:FATHOM_ACCOUNT_LEADS_LABEL" `
+  --env FATHOM_ACCOUNT_INTERNO_API_KEY="$env:FATHOM_ACCOUNT_INTERNO_API_KEY" `
+  --env FATHOM_ACCOUNT_INTERNO_LABEL="$env:FATHOM_ACCOUNT_INTERNO_LABEL" `
+  --env FATHOM_ACCOUNT_JOTA_API_KEY="$env:FATHOM_ACCOUNT_JOTA_API_KEY" `
+  --env FATHOM_ACCOUNT_JOTA_LABEL="$env:FATHOM_ACCOUNT_JOTA_LABEL" `
+  --env FATHOM_DEFAULT_ACCOUNT="$env:FATHOM_DEFAULT_ACCOUNT" `
+  -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
+Account ids are created from the environment variable name. For example, `FATHOM_ACCOUNT_LEADS_API_KEY` creates account id `leads`.
+
+### Bash or macOS/Linux Recommended
+
+```bash
+export FATHOM_ACCOUNT_LEADS_API_KEY="your_leads_fathom_api_key"
+export FATHOM_ACCOUNT_LEADS_LABEL="Leads"
+export FATHOM_ACCOUNT_INTERNO_API_KEY="your_interno_fathom_api_key"
+export FATHOM_ACCOUNT_INTERNO_LABEL="Interno"
+export FATHOM_DEFAULT_ACCOUNT="leads"
+
+codex mcp add fathom \
+  --env FATHOM_ACCOUNT_LEADS_API_KEY="$FATHOM_ACCOUNT_LEADS_API_KEY" \
+  --env FATHOM_ACCOUNT_LEADS_LABEL="$FATHOM_ACCOUNT_LEADS_LABEL" \
+  --env FATHOM_ACCOUNT_INTERNO_API_KEY="$FATHOM_ACCOUNT_INTERNO_API_KEY" \
+  --env FATHOM_ACCOUNT_INTERNO_LABEL="$FATHOM_ACCOUNT_INTERNO_LABEL" \
+  --env FATHOM_DEFAULT_ACCOUNT="$FATHOM_DEFAULT_ACCOUNT" \
+  -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
+### JSON Alternative
+
+`FATHOM_ACCOUNTS` must be a JSON array. Strict JSON uses double quotes around every key and value:
 
 ```bash
 export FATHOM_ACCOUNTS='[
@@ -77,26 +128,24 @@ export FATHOM_ACCOUNTS='[
   {"id":"inzaiq","label":"InzaiQ","apiKey":"your_inzaiq_fathom_api_key"}
 ]'
 export FATHOM_DEFAULT_ACCOUNT="inzaiq"
-
-codex mcp add fathom \
-  --env FATHOM_ACCOUNTS="$FATHOM_ACCOUNTS" \
-  --env FATHOM_DEFAULT_ACCOUNT="$FATHOM_DEFAULT_ACCOUNT" \
-  -- npx -y github:JuanCG13/fathom-mcp-codex
 ```
 
-### Windows PowerShell
+The MCP server also accepts common JavaScript-style object keys like `{id:"leads"}`, but strict JSON is still the safest format.
 
-```powershell
-$env:FATHOM_ACCOUNTS='[
-  {"id":"personal","label":"Personal","apiKey":"your_personal_fathom_api_key"},
-  {"id":"inzaiq","label":"InzaiQ","apiKey":"your_inzaiq_fathom_api_key"}
-]'
-$env:FATHOM_DEFAULT_ACCOUNT="inzaiq"
+### Troubleshooting `FATHOM_ACCOUNTS must be valid JSON`
 
-codex mcp add fathom `
-  --env FATHOM_ACCOUNTS="$env:FATHOM_ACCOUNTS" `
-  --env FATHOM_DEFAULT_ACCOUNT="$env:FATHOM_DEFAULT_ACCOUNT" `
-  -- npx -y github:JuanCG13/fathom-mcp-codex
+This usually happens when `FATHOM_ACCOUNTS` was pasted into `config.toml` as a JavaScript object instead of a JSON string.
+
+Fastest fix on Windows Desktop: remove `FATHOM_ACCOUNTS` from the MCP config and use the `FATHOM_ACCOUNT_<ID>_API_KEY` variables shown above.
+
+If you want to keep `FATHOM_ACCOUNTS`, make sure it is strict JSON:
+
+```json
+[
+  {"id":"leads","label":"Leads","apiKey":"your_leads_fathom_api_key"},
+  {"id":"interno","label":"Interno","apiKey":"your_interno_fathom_api_key"},
+  {"id":"jota","label":"Jota","apiKey":"your_jota_fathom_api_key"}
+]
 ```
 
 ### Using accounts in Codex
@@ -198,13 +247,16 @@ codex mcp remove fathom
 codex mcp add fathom --env FATHOM_API_KEY="$FATHOM_API_KEY" -- npx -y github:JuanCG13/fathom-mcp-codex
 ```
 
-Multi-account update:
+Multi-account update with individual environment variables:
 
 ```bash
 codex mcp remove fathom
 
 codex mcp add fathom \
-  --env FATHOM_ACCOUNTS="$FATHOM_ACCOUNTS" \
+  --env FATHOM_ACCOUNT_LEADS_API_KEY="$FATHOM_ACCOUNT_LEADS_API_KEY" \
+  --env FATHOM_ACCOUNT_LEADS_LABEL="$FATHOM_ACCOUNT_LEADS_LABEL" \
+  --env FATHOM_ACCOUNT_INTERNO_API_KEY="$FATHOM_ACCOUNT_INTERNO_API_KEY" \
+  --env FATHOM_ACCOUNT_INTERNO_LABEL="$FATHOM_ACCOUNT_INTERNO_LABEL" \
   --env FATHOM_DEFAULT_ACCOUNT="$FATHOM_DEFAULT_ACCOUNT" \
   -- npx -y github:JuanCG13/fathom-mcp-codex
 ```
@@ -215,7 +267,10 @@ Windows PowerShell:
 codex mcp remove fathom
 
 codex mcp add fathom `
-  --env FATHOM_ACCOUNTS="$env:FATHOM_ACCOUNTS" `
+  --env FATHOM_ACCOUNT_LEADS_API_KEY="$env:FATHOM_ACCOUNT_LEADS_API_KEY" `
+  --env FATHOM_ACCOUNT_LEADS_LABEL="$env:FATHOM_ACCOUNT_LEADS_LABEL" `
+  --env FATHOM_ACCOUNT_INTERNO_API_KEY="$env:FATHOM_ACCOUNT_INTERNO_API_KEY" `
+  --env FATHOM_ACCOUNT_INTERNO_LABEL="$env:FATHOM_ACCOUNT_INTERNO_LABEL" `
   --env FATHOM_DEFAULT_ACCOUNT="$env:FATHOM_DEFAULT_ACCOUNT" `
   -- npx -y github:JuanCG13/fathom-mcp-codex
 ```

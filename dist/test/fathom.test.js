@@ -97,6 +97,59 @@ test("createFathomClient selects requested account", async () => {
         restoreEnv("FATHOM_API_KEY", previousApiKey);
     }
 });
+test("FATHOM_ACCOUNTS accepts relaxed JavaScript-style object keys", () => {
+    const previousAccounts = process.env.FATHOM_ACCOUNTS;
+    const previousDefault = process.env.FATHOM_DEFAULT_ACCOUNT;
+    const previousApiKey = process.env.FATHOM_API_KEY;
+    try {
+        delete process.env.FATHOM_API_KEY;
+        process.env.FATHOM_DEFAULT_ACCOUNT = "leads";
+        process.env.FATHOM_ACCOUNTS = `[
+      {id:"leads",label:"Leads",apiKey:"leads-key"},
+      {id:"interno",label:"Interno",apiKey:"interno-key"},
+    ]`;
+        assert.deepEqual(listFathomAccounts().map((account) => ({ id: account.id, label: account.label, is_default: account.is_default })), [
+            { id: "leads", label: "Leads", is_default: true },
+            { id: "interno", label: "Interno", is_default: false },
+        ]);
+    }
+    finally {
+        restoreEnv("FATHOM_ACCOUNTS", previousAccounts);
+        restoreEnv("FATHOM_DEFAULT_ACCOUNT", previousDefault);
+        restoreEnv("FATHOM_API_KEY", previousApiKey);
+    }
+});
+test("individual account environment variables avoid JSON parsing", () => {
+    const previousAccounts = process.env.FATHOM_ACCOUNTS;
+    const previousDefault = process.env.FATHOM_DEFAULT_ACCOUNT;
+    const previousApiKey = process.env.FATHOM_API_KEY;
+    const previousLeadsKey = process.env.FATHOM_ACCOUNT_LEADS_API_KEY;
+    const previousLeadsLabel = process.env.FATHOM_ACCOUNT_LEADS_LABEL;
+    const previousInternoKey = process.env.FATHOM_ACCOUNT_INTERNO_API_KEY;
+    const previousInternoLabel = process.env.FATHOM_ACCOUNT_INTERNO_LABEL;
+    try {
+        delete process.env.FATHOM_ACCOUNTS;
+        delete process.env.FATHOM_API_KEY;
+        process.env.FATHOM_DEFAULT_ACCOUNT = "interno";
+        process.env.FATHOM_ACCOUNT_LEADS_API_KEY = "leads-key";
+        process.env.FATHOM_ACCOUNT_LEADS_LABEL = "Leads";
+        process.env.FATHOM_ACCOUNT_INTERNO_API_KEY = "interno-key";
+        process.env.FATHOM_ACCOUNT_INTERNO_LABEL = "Interno";
+        assert.deepEqual(listFathomAccounts().map((account) => ({ id: account.id, label: account.label, is_default: account.is_default })), [
+            { id: "interno", label: "Interno", is_default: true },
+            { id: "leads", label: "Leads", is_default: false },
+        ]);
+    }
+    finally {
+        restoreEnv("FATHOM_ACCOUNTS", previousAccounts);
+        restoreEnv("FATHOM_DEFAULT_ACCOUNT", previousDefault);
+        restoreEnv("FATHOM_API_KEY", previousApiKey);
+        restoreEnv("FATHOM_ACCOUNT_LEADS_API_KEY", previousLeadsKey);
+        restoreEnv("FATHOM_ACCOUNT_LEADS_LABEL", previousLeadsLabel);
+        restoreEnv("FATHOM_ACCOUNT_INTERNO_API_KEY", previousInternoKey);
+        restoreEnv("FATHOM_ACCOUNT_INTERNO_LABEL", previousInternoLabel);
+    }
+});
 function restoreEnv(name, value) {
     if (value === undefined) {
         delete process.env[name];

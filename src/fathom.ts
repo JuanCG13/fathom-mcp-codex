@@ -172,6 +172,11 @@ function loadFathomAccounts(): FathomAccountConfig[] {
     return parseFathomAccounts(process.env.FATHOM_ACCOUNTS);
   }
 
+  const envAccounts = loadFathomAccountsFromIndividualEnv();
+  if (envAccounts.length > 0) {
+    return envAccounts;
+  }
+
   if (process.env.FATHOM_API_KEY) {
     return [
       {
@@ -187,12 +192,7 @@ function loadFathomAccounts(): FathomAccountConfig[] {
 }
 
 function parseFathomAccounts(rawAccounts: string): FathomAccountConfig[] {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(rawAccounts);
-  } catch (error) {
-    throw new Error(`FATHOM_ACCOUNTS must be valid JSON. ${error instanceof Error ? error.message : ""}`.trim());
-  }
+  const parsed = parseAccountsValue(rawAccounts);
 
   if (!Array.isArray(parsed)) {
     throw new Error("FATHOM_ACCOUNTS must be a JSON array.");
@@ -208,6 +208,54 @@ function parseFathomAccounts(rawAccounts: string): FathomAccountConfig[] {
   }
 
   return accounts;
+}
+
+function parseAccountsValue(rawAccounts: string): unknown {
+  try {
+    return JSON.parse(rawAccounts);
+  } catch (jsonError) {
+    const relaxed = toRelaxedJson(rawAccounts);
+    try {
+      return JSON.parse(relaxed);
+    } catch (relaxedError) {
+      const jsonMessage = jsonError instanceof Error ? jsonError.message : "Invalid JSON";
+      const relaxedMessage = relaxedError instanceof Error ? relaxedError.message : "Invalid relaxed JSON";
+      throw new Error(
+        `FATHOM_ACCOUNTS must be a JSON array. Use strict JSON with double-quoted keys and values, or configure accounts with FATHOM_ACCOUNT_<ID>_API_KEY variables. JSON error: ${jsonMessage}. Relaxed parse error: ${relaxedMessage}`,
+      );
+    }
+  }
+}
+
+function toRelaxedJson(rawAccounts: string): string {
+  return rawAccounts
+    .trim()
+    .replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)(\s*:)/g, '$1"$2"$3')
+    .replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, (_match, value: string) => JSON.stringify(value.replace(/\\'/g, "'")))
+    .replace(/,\s*([}\]])/g, "$1");
+}
+
+function loadFathomAccountsFromIndividualEnv(): FathomAccountConfig[] {
+  const ids = new Set<string>();
+  for (const key of Object.keys(process.env)) {
+    const match = key.match(/^FATHOM_ACCOUNT_([A-Z0-9_]+)_API_KEY$/);
+    if (match) ids.add(match[1].toLowerCase());
+  }
+
+  return [...ids].sort().map((id) => {
+    const envId = id.toUpperCase();
+    const apiKey = process.env[`FATHOM_ACCOUNT_${envId}_API_KEY`];
+    if (!apiKey) {
+      throw new Error(`FATHOM_ACCOUNT_${envId}_API_KEY must be a non-empty string.`);
+    }
+
+    return {
+      id,
+      label: process.env[`FATHOM_ACCOUNT_${envId}_LABEL`] ?? id,
+      apiKey,
+      baseUrl: process.env[`FATHOM_ACCOUNT_${envId}_BASE_URL`],
+    };
+  });
 }
 
 function normalizeFathomAccount(account: unknown, index: number): FathomAccountConfig {
