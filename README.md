@@ -61,6 +61,58 @@ Summarize my most recent Fathom meeting.
 List my Fathom teams.
 ```
 
+## Codex Desktop on Windows
+
+Codex Desktop can use this MCP server as long as you register it in the same environment where Codex Desktop runs.
+
+### Windows native install
+
+Use this path if you run Codex Desktop as a normal Windows app.
+
+Requirements:
+
+- Node.js 20 or newer installed on Windows
+- Git installed on Windows
+- Codex CLI available in PowerShell
+
+Open PowerShell and run:
+
+```powershell
+$env:FATHOM_API_KEY="your_fathom_api_key"
+
+codex mcp add fathom --env FATHOM_API_KEY="$env:FATHOM_API_KEY" -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
+Verify:
+
+```powershell
+codex mcp list
+```
+
+Then restart Codex Desktop and ask:
+
+```text
+List my latest Fathom meetings.
+```
+
+### Windows native install with webhook verification
+
+```powershell
+$env:FATHOM_API_KEY="your_fathom_api_key"
+$env:FATHOM_WEBHOOK_SECRET="whsec_your_webhook_secret"
+
+codex mcp add fathom `
+  --env FATHOM_API_KEY="$env:FATHOM_API_KEY" `
+  --env FATHOM_WEBHOOK_SECRET="$env:FATHOM_WEBHOOK_SECRET" `
+  -- npx -y github:JuanCG13/fathom-mcp-codex
+```
+
+### WSL note
+
+If you run the install command inside WSL, the MCP server is registered for Codex running inside WSL. That may not be visible to Codex Desktop running as a native Windows app.
+
+For Codex Desktop on Windows, run the install command in Windows PowerShell, not inside WSL.
+
 ## Optional Webhook Setup
 
 If you want Codex to verify Fathom webhook signatures, also export the webhook secret returned by Fathom when you create a webhook:
