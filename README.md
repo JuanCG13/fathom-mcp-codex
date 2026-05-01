@@ -65,7 +65,7 @@ List my Fathom teams.
 
 ## Multiple Fathom Accounts
 
-You can connect more than one Fathom account to the same MCP server. Use this when you have separate API keys for personal, company, or client workspaces.
+You can connect more than one Fathom account to the same MCP server. Use this when you have separate API keys for individual, company, or client workspaces.
 
 Recommended setup:
 
@@ -79,41 +79,41 @@ If `FATHOM_ACCOUNTS` is set, it takes precedence over individual `FATHOM_ACCOUNT
 This avoids JSON parsing issues in `C:\Users\<you>\.codex\config.toml`.
 
 ```powershell
-$env:FATHOM_ACCOUNT_LEADS_API_KEY="your_leads_fathom_api_key"
-$env:FATHOM_ACCOUNT_LEADS_LABEL="Leads"
-$env:FATHOM_ACCOUNT_INTERNO_API_KEY="your_interno_fathom_api_key"
-$env:FATHOM_ACCOUNT_INTERNO_LABEL="Interno"
-$env:FATHOM_ACCOUNT_JOTA_API_KEY="your_jota_fathom_api_key"
-$env:FATHOM_ACCOUNT_JOTA_LABEL="Jota"
-$env:FATHOM_DEFAULT_ACCOUNT="leads"
+$env:FATHOM_ACCOUNT_SALES_API_KEY="your_sales_fathom_api_key"
+$env:FATHOM_ACCOUNT_SALES_LABEL="Sales"
+$env:FATHOM_ACCOUNT_OPERATIONS_API_KEY="your_operations_fathom_api_key"
+$env:FATHOM_ACCOUNT_OPERATIONS_LABEL="Operations"
+$env:FATHOM_ACCOUNT_CLIENT_API_KEY="your_client_fathom_api_key"
+$env:FATHOM_ACCOUNT_CLIENT_LABEL="Client"
+$env:FATHOM_DEFAULT_ACCOUNT="sales"
 
 codex mcp add fathom `
-  --env FATHOM_ACCOUNT_LEADS_API_KEY="$env:FATHOM_ACCOUNT_LEADS_API_KEY" `
-  --env FATHOM_ACCOUNT_LEADS_LABEL="$env:FATHOM_ACCOUNT_LEADS_LABEL" `
-  --env FATHOM_ACCOUNT_INTERNO_API_KEY="$env:FATHOM_ACCOUNT_INTERNO_API_KEY" `
-  --env FATHOM_ACCOUNT_INTERNO_LABEL="$env:FATHOM_ACCOUNT_INTERNO_LABEL" `
-  --env FATHOM_ACCOUNT_JOTA_API_KEY="$env:FATHOM_ACCOUNT_JOTA_API_KEY" `
-  --env FATHOM_ACCOUNT_JOTA_LABEL="$env:FATHOM_ACCOUNT_JOTA_LABEL" `
+  --env FATHOM_ACCOUNT_SALES_API_KEY="$env:FATHOM_ACCOUNT_SALES_API_KEY" `
+  --env FATHOM_ACCOUNT_SALES_LABEL="$env:FATHOM_ACCOUNT_SALES_LABEL" `
+  --env FATHOM_ACCOUNT_OPERATIONS_API_KEY="$env:FATHOM_ACCOUNT_OPERATIONS_API_KEY" `
+  --env FATHOM_ACCOUNT_OPERATIONS_LABEL="$env:FATHOM_ACCOUNT_OPERATIONS_LABEL" `
+  --env FATHOM_ACCOUNT_CLIENT_API_KEY="$env:FATHOM_ACCOUNT_CLIENT_API_KEY" `
+  --env FATHOM_ACCOUNT_CLIENT_LABEL="$env:FATHOM_ACCOUNT_CLIENT_LABEL" `
   --env FATHOM_DEFAULT_ACCOUNT="$env:FATHOM_DEFAULT_ACCOUNT" `
   -- npx -y github:JuanCG13/fathom-mcp-codex
 ```
 
-Account ids are created from the environment variable name. For example, `FATHOM_ACCOUNT_LEADS_API_KEY` creates account id `leads`.
+Account ids are created from the environment variable name. For example, `FATHOM_ACCOUNT_SALES_API_KEY` creates account id `sales`.
 
 ### Bash or macOS/Linux Recommended
 
 ```bash
-export FATHOM_ACCOUNT_LEADS_API_KEY="your_leads_fathom_api_key"
-export FATHOM_ACCOUNT_LEADS_LABEL="Leads"
-export FATHOM_ACCOUNT_INTERNO_API_KEY="your_interno_fathom_api_key"
-export FATHOM_ACCOUNT_INTERNO_LABEL="Interno"
-export FATHOM_DEFAULT_ACCOUNT="leads"
+export FATHOM_ACCOUNT_SALES_API_KEY="your_sales_fathom_api_key"
+export FATHOM_ACCOUNT_SALES_LABEL="Sales"
+export FATHOM_ACCOUNT_OPERATIONS_API_KEY="your_operations_fathom_api_key"
+export FATHOM_ACCOUNT_OPERATIONS_LABEL="Operations"
+export FATHOM_DEFAULT_ACCOUNT="sales"
 
 codex mcp add fathom \
-  --env FATHOM_ACCOUNT_LEADS_API_KEY="$FATHOM_ACCOUNT_LEADS_API_KEY" \
-  --env FATHOM_ACCOUNT_LEADS_LABEL="$FATHOM_ACCOUNT_LEADS_LABEL" \
-  --env FATHOM_ACCOUNT_INTERNO_API_KEY="$FATHOM_ACCOUNT_INTERNO_API_KEY" \
-  --env FATHOM_ACCOUNT_INTERNO_LABEL="$FATHOM_ACCOUNT_INTERNO_LABEL" \
+  --env FATHOM_ACCOUNT_SALES_API_KEY="$FATHOM_ACCOUNT_SALES_API_KEY" \
+  --env FATHOM_ACCOUNT_SALES_LABEL="$FATHOM_ACCOUNT_SALES_LABEL" \
+  --env FATHOM_ACCOUNT_OPERATIONS_API_KEY="$FATHOM_ACCOUNT_OPERATIONS_API_KEY" \
+  --env FATHOM_ACCOUNT_OPERATIONS_LABEL="$FATHOM_ACCOUNT_OPERATIONS_LABEL" \
   --env FATHOM_DEFAULT_ACCOUNT="$FATHOM_DEFAULT_ACCOUNT" \
   -- npx -y github:JuanCG13/fathom-mcp-codex
 ```
@@ -124,13 +124,13 @@ codex mcp add fathom \
 
 ```bash
 export FATHOM_ACCOUNTS='[
-  {"id":"personal","label":"Personal","apiKey":"your_personal_fathom_api_key"},
-  {"id":"inzaiq","label":"InzaiQ","apiKey":"your_inzaiq_fathom_api_key"}
+  {"id":"primary","label":"Primary","apiKey":"your_primary_fathom_api_key"},
+  {"id":"engineering","label":"Engineering","apiKey":"your_engineering_fathom_api_key"}
 ]'
-export FATHOM_DEFAULT_ACCOUNT="inzaiq"
+export FATHOM_DEFAULT_ACCOUNT="engineering"
 ```
 
-The MCP server also accepts common JavaScript-style object keys like `{id:"leads"}`, but strict JSON is still the safest format.
+The MCP server also accepts common JavaScript-style object keys like `{id:"sales"}`, but strict JSON is still the safest format.
 
 ### Troubleshooting `FATHOM_ACCOUNTS must be valid JSON`
 
@@ -142,9 +142,9 @@ If you want to keep `FATHOM_ACCOUNTS`, make sure it is strict JSON:
 
 ```json
 [
-  {"id":"leads","label":"Leads","apiKey":"your_leads_fathom_api_key"},
-  {"id":"interno","label":"Interno","apiKey":"your_interno_fathom_api_key"},
-  {"id":"jota","label":"Jota","apiKey":"your_jota_fathom_api_key"}
+  {"id":"sales","label":"Sales","apiKey":"your_sales_fathom_api_key"},
+  {"id":"operations","label":"Operations","apiKey":"your_operations_fathom_api_key"},
+  {"id":"client","label":"Client","apiKey":"your_client_fathom_api_key"}
 ]
 ```
 
@@ -154,8 +154,8 @@ Ask Codex naturally:
 
 ```text
 List my configured Fathom accounts.
-List my latest Fathom meetings from the InzaiQ account.
-Get the transcript for recording 123456789 from the personal account.
+List my latest Fathom meetings from the Engineering account.
+Get the transcript for recording 123456789 from the Primary account.
 ```
 
 Every Fathom tool accepts an optional `account` id. If no account is specified, the MCP server uses `FATHOM_DEFAULT_ACCOUNT`. If no default is set, it uses the first account in `FATHOM_ACCOUNTS`.
@@ -253,10 +253,10 @@ Multi-account update with individual environment variables:
 codex mcp remove fathom
 
 codex mcp add fathom \
-  --env FATHOM_ACCOUNT_LEADS_API_KEY="$FATHOM_ACCOUNT_LEADS_API_KEY" \
-  --env FATHOM_ACCOUNT_LEADS_LABEL="$FATHOM_ACCOUNT_LEADS_LABEL" \
-  --env FATHOM_ACCOUNT_INTERNO_API_KEY="$FATHOM_ACCOUNT_INTERNO_API_KEY" \
-  --env FATHOM_ACCOUNT_INTERNO_LABEL="$FATHOM_ACCOUNT_INTERNO_LABEL" \
+  --env FATHOM_ACCOUNT_SALES_API_KEY="$FATHOM_ACCOUNT_SALES_API_KEY" \
+  --env FATHOM_ACCOUNT_SALES_LABEL="$FATHOM_ACCOUNT_SALES_LABEL" \
+  --env FATHOM_ACCOUNT_OPERATIONS_API_KEY="$FATHOM_ACCOUNT_OPERATIONS_API_KEY" \
+  --env FATHOM_ACCOUNT_OPERATIONS_LABEL="$FATHOM_ACCOUNT_OPERATIONS_LABEL" \
   --env FATHOM_DEFAULT_ACCOUNT="$FATHOM_DEFAULT_ACCOUNT" \
   -- npx -y github:JuanCG13/fathom-mcp-codex
 ```
@@ -267,10 +267,10 @@ Windows PowerShell:
 codex mcp remove fathom
 
 codex mcp add fathom `
-  --env FATHOM_ACCOUNT_LEADS_API_KEY="$env:FATHOM_ACCOUNT_LEADS_API_KEY" `
-  --env FATHOM_ACCOUNT_LEADS_LABEL="$env:FATHOM_ACCOUNT_LEADS_LABEL" `
-  --env FATHOM_ACCOUNT_INTERNO_API_KEY="$env:FATHOM_ACCOUNT_INTERNO_API_KEY" `
-  --env FATHOM_ACCOUNT_INTERNO_LABEL="$env:FATHOM_ACCOUNT_INTERNO_LABEL" `
+  --env FATHOM_ACCOUNT_SALES_API_KEY="$env:FATHOM_ACCOUNT_SALES_API_KEY" `
+  --env FATHOM_ACCOUNT_SALES_LABEL="$env:FATHOM_ACCOUNT_SALES_LABEL" `
+  --env FATHOM_ACCOUNT_OPERATIONS_API_KEY="$env:FATHOM_ACCOUNT_OPERATIONS_API_KEY" `
+  --env FATHOM_ACCOUNT_OPERATIONS_LABEL="$env:FATHOM_ACCOUNT_OPERATIONS_LABEL" `
   --env FATHOM_DEFAULT_ACCOUNT="$env:FATHOM_DEFAULT_ACCOUNT" `
   -- npx -y github:JuanCG13/fathom-mcp-codex
 ```

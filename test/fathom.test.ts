@@ -53,27 +53,27 @@ test("listFathomAccounts returns safe account metadata", () => {
   const previousApiKey = process.env.FATHOM_API_KEY;
   try {
     delete process.env.FATHOM_API_KEY;
-    process.env.FATHOM_DEFAULT_ACCOUNT = "inzaiq";
+    process.env.FATHOM_DEFAULT_ACCOUNT = "engineering";
     process.env.FATHOM_ACCOUNTS = JSON.stringify([
-      { id: "personal", label: "Personal", apiKey: "personal-key" },
-      { id: "inzaiq", label: "InzaiQ", apiKey: "inzaiq-key" },
+      { id: "primary", label: "Primary", apiKey: "primary-key" },
+      { id: "engineering", label: "Engineering", apiKey: "engineering-key" },
     ]);
 
     assert.deepEqual(listFathomAccounts(), [
       {
-        id: "personal",
-        label: "Personal",
+        id: "primary",
+        label: "Primary",
         is_default: false,
         base_url: "https://api.fathom.ai/external/v1",
       },
       {
-        id: "inzaiq",
-        label: "InzaiQ",
+        id: "engineering",
+        label: "Engineering",
         is_default: true,
         base_url: "https://api.fathom.ai/external/v1",
       },
     ]);
-    assert.equal(getDefaultFathomAccount().id, "inzaiq");
+    assert.equal(getDefaultFathomAccount().id, "engineering");
   } finally {
     restoreEnv("FATHOM_ACCOUNTS", previousAccounts);
     restoreEnv("FATHOM_DEFAULT_ACCOUNT", previousDefault);
@@ -87,10 +87,10 @@ test("createFathomClient selects requested account", async () => {
   const previousApiKey = process.env.FATHOM_API_KEY;
   try {
     delete process.env.FATHOM_API_KEY;
-    process.env.FATHOM_DEFAULT_ACCOUNT = "personal";
+    process.env.FATHOM_DEFAULT_ACCOUNT = "primary";
     process.env.FATHOM_ACCOUNTS = JSON.stringify([
-      { id: "personal", label: "Personal", apiKey: "personal-key" },
-      { id: "inzaiq", label: "InzaiQ", apiKey: "inzaiq-key" },
+      { id: "primary", label: "Primary", apiKey: "primary-key" },
+      { id: "engineering", label: "Engineering", apiKey: "engineering-key" },
     ]);
 
     let apiKey = "";
@@ -99,10 +99,10 @@ test("createFathomClient selects requested account", async () => {
       return new Response(JSON.stringify({ ok: true }), { status: 200 });
     };
 
-    const client = createFathomClient({ account: "inzaiq", fetchImpl: fetchImpl as typeof fetch });
+    const client = createFathomClient({ account: "engineering", fetchImpl: fetchImpl as typeof fetch });
     await client.get("/teams");
 
-    assert.equal(apiKey, "inzaiq-key");
+    assert.equal(apiKey, "engineering-key");
   } finally {
     restoreEnv("FATHOM_ACCOUNTS", previousAccounts);
     restoreEnv("FATHOM_DEFAULT_ACCOUNT", previousDefault);
@@ -116,17 +116,17 @@ test("FATHOM_ACCOUNTS accepts relaxed JavaScript-style object keys", () => {
   const previousApiKey = process.env.FATHOM_API_KEY;
   try {
     delete process.env.FATHOM_API_KEY;
-    process.env.FATHOM_DEFAULT_ACCOUNT = "leads";
+    process.env.FATHOM_DEFAULT_ACCOUNT = "sales";
     process.env.FATHOM_ACCOUNTS = `[
-      {id:"leads",label:"Leads",apiKey:"leads-key"},
-      {id:"interno",label:"Interno",apiKey:"interno-key"},
+      {id:"sales",label:"Sales",apiKey:"sales-key"},
+      {id:"operations",label:"Operations",apiKey:"operations-key"},
     ]`;
 
     assert.deepEqual(
       listFathomAccounts().map((account) => ({ id: account.id, label: account.label, is_default: account.is_default })),
       [
-        { id: "leads", label: "Leads", is_default: true },
-        { id: "interno", label: "Interno", is_default: false },
+        { id: "sales", label: "Sales", is_default: true },
+        { id: "operations", label: "Operations", is_default: false },
       ],
     );
   } finally {
@@ -140,34 +140,34 @@ test("individual account environment variables avoid JSON parsing", () => {
   const previousAccounts = process.env.FATHOM_ACCOUNTS;
   const previousDefault = process.env.FATHOM_DEFAULT_ACCOUNT;
   const previousApiKey = process.env.FATHOM_API_KEY;
-  const previousLeadsKey = process.env.FATHOM_ACCOUNT_LEADS_API_KEY;
-  const previousLeadsLabel = process.env.FATHOM_ACCOUNT_LEADS_LABEL;
-  const previousInternoKey = process.env.FATHOM_ACCOUNT_INTERNO_API_KEY;
-  const previousInternoLabel = process.env.FATHOM_ACCOUNT_INTERNO_LABEL;
+  const previousSalesKey = process.env.FATHOM_ACCOUNT_SALES_API_KEY;
+  const previousSalesLabel = process.env.FATHOM_ACCOUNT_SALES_LABEL;
+  const previousOperationsKey = process.env.FATHOM_ACCOUNT_OPERATIONS_API_KEY;
+  const previousOperationsLabel = process.env.FATHOM_ACCOUNT_OPERATIONS_LABEL;
   try {
     delete process.env.FATHOM_ACCOUNTS;
     delete process.env.FATHOM_API_KEY;
-    process.env.FATHOM_DEFAULT_ACCOUNT = "interno";
-    process.env.FATHOM_ACCOUNT_LEADS_API_KEY = "leads-key";
-    process.env.FATHOM_ACCOUNT_LEADS_LABEL = "Leads";
-    process.env.FATHOM_ACCOUNT_INTERNO_API_KEY = "interno-key";
-    process.env.FATHOM_ACCOUNT_INTERNO_LABEL = "Interno";
+    process.env.FATHOM_DEFAULT_ACCOUNT = "operations";
+    process.env.FATHOM_ACCOUNT_SALES_API_KEY = "sales-key";
+    process.env.FATHOM_ACCOUNT_SALES_LABEL = "Sales";
+    process.env.FATHOM_ACCOUNT_OPERATIONS_API_KEY = "operations-key";
+    process.env.FATHOM_ACCOUNT_OPERATIONS_LABEL = "Operations";
 
     assert.deepEqual(
       listFathomAccounts().map((account) => ({ id: account.id, label: account.label, is_default: account.is_default })),
       [
-        { id: "interno", label: "Interno", is_default: true },
-        { id: "leads", label: "Leads", is_default: false },
+        { id: "operations", label: "Operations", is_default: true },
+        { id: "sales", label: "Sales", is_default: false },
       ],
     );
   } finally {
     restoreEnv("FATHOM_ACCOUNTS", previousAccounts);
     restoreEnv("FATHOM_DEFAULT_ACCOUNT", previousDefault);
     restoreEnv("FATHOM_API_KEY", previousApiKey);
-    restoreEnv("FATHOM_ACCOUNT_LEADS_API_KEY", previousLeadsKey);
-    restoreEnv("FATHOM_ACCOUNT_LEADS_LABEL", previousLeadsLabel);
-    restoreEnv("FATHOM_ACCOUNT_INTERNO_API_KEY", previousInternoKey);
-    restoreEnv("FATHOM_ACCOUNT_INTERNO_LABEL", previousInternoLabel);
+    restoreEnv("FATHOM_ACCOUNT_SALES_API_KEY", previousSalesKey);
+    restoreEnv("FATHOM_ACCOUNT_SALES_LABEL", previousSalesLabel);
+    restoreEnv("FATHOM_ACCOUNT_OPERATIONS_API_KEY", previousOperationsKey);
+    restoreEnv("FATHOM_ACCOUNT_OPERATIONS_LABEL", previousOperationsLabel);
   }
 });
 
