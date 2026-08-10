@@ -1,6 +1,6 @@
 {
   "name": "@codex-plugins/fathom-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Codex plugin and MCP server for Fathom AI Notetaker.",
   "type": "module",
   "bin": {

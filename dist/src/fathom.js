@@ -239,18 +239,25 @@ export function verifyFathomWebhook(input) {
     const signedContent = `${webhookId}.${webhookTimestamp}.${input.rawBody}`;
     const expectedSignature = crypto.createHmac("sha256", secretBytes).update(signedContent).digest("base64");
     return webhookSignature
-        .split(" ")
+        .trim()
+        .split(/\s+/)
         .map((signature) => {
         const parts = signature.split(",");
-        return parts.length > 1 ? parts[1] : parts[0];
+        return (parts.length > 1 ? parts[1] : parts[0]).trim();
     })
         .some((signature) => timingSafeEqualString(expectedSignature, signature));
 }
 function headerValue(headers, name) {
-    const direct = headers[name] ?? headers[name.toLowerCase()] ?? headers[name.toUpperCase()];
-    if (Array.isArray(direct))
-        return direct[0];
-    return direct;
+    const normalizedName = name.toLowerCase();
+    for (const [headerName, value] of Object.entries(headers)) {
+        if (headerName.toLowerCase() !== normalizedName)
+            continue;
+        const firstValue = Array.isArray(value) ? value[0] : value;
+        if (firstValue === undefined)
+            continue;
+        return firstValue.trim();
+    }
+    return undefined;
 }
 function timingSafeEqualString(left, right) {
     const leftBuffer = Buffer.from(left);

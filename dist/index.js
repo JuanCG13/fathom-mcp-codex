@@ -31083,15 +31083,20 @@ function verifyFathomWebhook(input) {
   const secretBytes = Buffer.from(secretPayload, "base64");
   const signedContent = `${webhookId}.${webhookTimestamp}.${input.rawBody}`;
   const expectedSignature = crypto.createHmac("sha256", secretBytes).update(signedContent).digest("base64");
-  return webhookSignature.split(" ").map((signature) => {
+  return webhookSignature.trim().split(/\s+/).map((signature) => {
     const parts = signature.split(",");
-    return parts.length > 1 ? parts[1] : parts[0];
+    return (parts.length > 1 ? parts[1] : parts[0]).trim();
   }).some((signature) => timingSafeEqualString(expectedSignature, signature));
 }
 function headerValue(headers, name) {
-  const direct = headers[name] ?? headers[name.toLowerCase()] ?? headers[name.toUpperCase()];
-  if (Array.isArray(direct)) return direct[0];
-  return direct;
+  const normalizedName = name.toLowerCase();
+  for (const [headerName, value] of Object.entries(headers)) {
+    if (headerName.toLowerCase() !== normalizedName) continue;
+    const firstValue = Array.isArray(value) ? value[0] : value;
+    if (firstValue === void 0) continue;
+    return firstValue.trim();
+  }
+  return void 0;
 }
 function timingSafeEqualString(left, right) {
   const leftBuffer = Buffer.from(left);
@@ -31113,7 +31118,7 @@ function jsonText(data) {
 // src/index.ts
 var server = new McpServer({
   name: "fathom-mcp",
-  version: "1.0.0"
+  version: "1.0.1"
 });
 var accountSchema = external_exports.string().optional().describe("Optional Fathom account id from FATHOM_ACCOUNTS.");
 var client = (account) => createFathomClient({ account });

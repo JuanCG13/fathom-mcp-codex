@@ -11,10 +11,10 @@ Fathom captures valuable meeting context, but that context is most useful when C
 ## Use cases
 
 - Review recent meetings and ask Codex follow-up questions about summaries, transcripts, action items, and CRM matches.
-- Turn meeting outcomes into project notes, handoffs, tickets, or other automated workflows.
-- Work with multiple Fathom workspaces, such as personal, company, sales, operations, or client accounts, from one MCP server.
+- Use retrieved meeting outcomes as input for project notes, handoffs, tickets, or other automations in Codex.
+- Work with multiple Fathom accounts/API keys, such as personal, company, sales, operations, or client accounts, from one MCP server.
 - Inspect Fathom teams and members when preparing reporting, routing, or access-related workflows.
-- Create and delete Fathom webhooks for downstream automations, and verify webhook signatures before processing events.
+- Create and delete Fathom webhooks for downstream automations, and verify signatures for events you receive when their raw headers and body are available.
 
 ## Requirements
 
@@ -170,7 +170,7 @@ List my latest Fathom meetings from the Engineering account.
 Get the transcript for recording 123456789 from the Primary account.
 ```
 
-Every Fathom tool accepts an optional `account` id. If no account is specified, the MCP server uses `FATHOM_DEFAULT_ACCOUNT`. If no default is set, it uses the first account in `FATHOM_ACCOUNTS`.
+Every Fathom tool accepts an optional `account` id. If no account is specified, the MCP server uses `FATHOM_DEFAULT_ACCOUNT`. If no default is set, it uses the first configured account, whether it came from `FATHOM_ACCOUNTS` or individual `FATHOM_ACCOUNT_<ID>_API_KEY` variables.
 
 Account ids may contain letters, numbers, underscores, and hyphens. API keys are never returned by the account-listing tool.
 

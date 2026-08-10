@@ -22,7 +22,7 @@
         "FATHOM_WEBHOOK_API_KEY": "${FATHOM_WEBHOOK_API_KEY}",
         "FATHOM_BASE_URL": "${FATHOM_BASE_URL}"
       },
-      "note": "Local MCP server for Fathom AI Notetaker. Requires FATHOM_API_KEY and Node.js 20 or newer."
+      "note": "Local MCP server for Fathom AI Notetaker. Requires a Fathom API key via FATHOM_API_KEY, FATHOM_ACCOUNTS, or FATHOM_ACCOUNT_<ID>_API_KEY, plus Node.js 20 or newer."
     }
   }
 }

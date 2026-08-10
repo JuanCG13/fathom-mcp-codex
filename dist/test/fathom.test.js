@@ -38,6 +38,27 @@ test("verifyFathomWebhook validates Fathom HMAC signatures", () => {
         nowSeconds: 1800000000,
     }), true);
 });
+test("verifyFathomWebhook handles case-insensitive header names and signature whitespace", () => {
+    const rawSecret = Buffer.from("test-secret").toString("base64");
+    const secret = `whsec_${rawSecret}`;
+    const id = "msg_case_insensitive";
+    const timestamp = "1800000000";
+    const rawBody = JSON.stringify({ recording_id: 456 });
+    const signature = crypto
+        .createHmac("sha256", Buffer.from(rawSecret, "base64"))
+        .update(`${id}.${timestamp}.${rawBody}`)
+        .digest("base64");
+    assert.equal(verifyFathomWebhook({
+        secret,
+        headers: {
+            "Webhook-Id": ` ${id} `,
+            "Webhook-Timestamp": ` ${timestamp} `,
+            "Webhook-Signature": `v1,${signature}\tv1,invalid`,
+        },
+        rawBody,
+        nowSeconds: 1800000000,
+    }), true);
+});
 test("listFathomAccounts returns safe account metadata", () => {
     const previousAccounts = process.env.FATHOM_ACCOUNTS;
     const previousDefault = process.env.FATHOM_DEFAULT_ACCOUNT;
