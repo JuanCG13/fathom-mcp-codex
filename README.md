@@ -4,6 +4,18 @@ Codex plugin and local MCP server for [Fathom AI Notetaker](https://developers.f
 
 Developed by the [InzaiQ LLC](https://www.inzaiq.com/) team, specialists in custom software, applied AI, automation, and crypto engineering.
 
+## Why this project exists
+
+Fathom captures valuable meeting context, but that context is most useful when Codex can access it directly while you work. This open-source project provides a local MCP bridge between Codex and the Fathom API, so meeting knowledge can be used in the same workflow as your code, documents, and automations. It keeps your Fathom credentials in your own environment and exposes focused tools instead of requiring a separate custom integration for every task.
+
+## Use cases
+
+- Review recent meetings and ask Codex follow-up questions about summaries, transcripts, action items, and CRM matches.
+- Turn meeting outcomes into project notes, handoffs, tickets, or other automated workflows.
+- Work with multiple Fathom workspaces, such as personal, company, sales, operations, or client accounts, from one MCP server.
+- Inspect Fathom teams and members when preparing reporting, routing, or access-related workflows.
+- Create and delete Fathom webhooks for downstream automations, and verify webhook signatures before processing events.
+
 ## Requirements
 
 - Node.js 20 or newer

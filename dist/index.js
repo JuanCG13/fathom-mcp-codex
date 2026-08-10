@@ -31113,7 +31113,7 @@ function jsonText(data) {
 // src/index.ts
 var server = new McpServer({
   name: "fathom-mcp",
-  version: "0.1.0"
+  version: "1.0.0"
 });
 var accountSchema = external_exports.string().optional().describe("Optional Fathom account id from FATHOM_ACCOUNTS.");
 var client = (account) => createFathomClient({ account });
